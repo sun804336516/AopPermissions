@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.sxw.permissions_lib.PermissionFragment;
@@ -31,6 +32,8 @@ import java.util.List;
  */
 @Aspect
 public class PermissionAspectJ {
+    private static final String THROW_STR = "your method [%s] must only has one ParameterType:%s";
+
     private static final String TAG = "PermissionFragment";
     Context context;
 
@@ -103,9 +106,29 @@ public class PermissionAspectJ {
                         method.setAccessible(true);
                         //获取方法类型
                         Class<?>[] types = method.getParameterTypes();
-                        if (types.length != 1) {
-                            return;
+                        String throwStr = null;
+                        if (types == null || types.length == 0) {
+                            throwStr = String.format(THROW_STR, method.getName(), "PermissionCancelBean");
+                        } else if (types.length == 1) {
+                            Object newInstance = null;
+                            try {
+                                newInstance = types[0].newInstance();
+                                Log.d(TAG, newInstance.toString());
+                            } catch (InstantiationException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            }
+                            if (newInstance == null || !(newInstance instanceof PermissionDenyBean)) {
+                                throwStr = String.format(THROW_STR, method.getName(), "PermissionDenyBean");
+                            }
+                        } else {
+                            throwStr = String.format(THROW_STR, method.getName(), "PermissionDenyBean");
                         }
+                        if (!TextUtils.isEmpty(throwStr)) {
+                            throw new IllegalArgumentException(throwStr);
+                        }
+
                         //获取方法上的注解
                         PermissionDenied aInfo = method.getAnnotation(PermissionDenied.class);
                         if (aInfo == null) {
@@ -141,9 +164,29 @@ public class PermissionAspectJ {
                         method.setAccessible(true);
                         //获取方法类型
                         Class<?>[] types = method.getParameterTypes();
-                        if (types.length != 1) {
-                            return;
+                        String throwStr = null;
+                        if (types == null || types.length == 0) {
+                            throwStr = String.format(THROW_STR, method.getName(), "PermissionCancelBean");
+                        } else if (types.length == 1) {
+                            Object newInstance = null;
+                            try {
+                                newInstance = types[0].newInstance();
+                                Log.d(TAG, newInstance.toString());
+                            } catch (InstantiationException e) {
+                                e.printStackTrace();
+                            } catch (IllegalAccessException e) {
+                                e.printStackTrace();
+                            }
+                            if (newInstance == null || !(newInstance instanceof PermissionCancelBean)) {
+                                throwStr = String.format(THROW_STR, method.getName(), "PermissionCancelBean");
+                            }
+                        } else {
+                            throwStr = String.format(THROW_STR, method.getName(), "PermissionCancelBean");
                         }
+                        if (!TextUtils.isEmpty(throwStr)) {
+                            throw new IllegalArgumentException(throwStr);
+                        }
+
                         //获取方法上的注解
                         PermissionCanceled aInfo = method.getAnnotation(PermissionCanceled.class);
                         if (aInfo == null) {

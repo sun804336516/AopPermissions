@@ -1,8 +1,65 @@
 # AopPermissions
 Aop实现动态权限请求
 改造自https://github.com/crazyqiang/Aopermission.git
-用法跟这个一致，
+
 
 为什么要重新实现》》》》》
 由于他采用的Activity实现的权限请求，当请求权限时，由于Activity启动，此时系统权限dialog弹出，
 界面会出现一闪而过的半透明，对于有强（she）迫（ji）症的人来说，可能是一种缺陷，故改造采用Fragment实现
+
+用法：
+
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        findViewById(R.id.textView).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                requestPermission();
+            }
+        });
+    }
+    @NeedPermission(value = {Manifest.permission.WRITE_EXTERNAL_STORAGE})
+    public void requestPermission() {
+        Toast.makeText(this, "sd卡读写权限申请成功", Toast.LENGTH_SHORT).show();
+    }
+
+    @PermissionCanceled
+    public void dealCancelPermission(PermissionCancelBean bean) {
+        Toast.makeText(bean.getContext(), "sd卡读写权限申请被取消，请求码 :" + bean.getRequestCode(), Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * 权限被拒绝
+     *
+     * @param permissionDenyBean PermissionDenyBean
+     */
+    @PermissionDenied
+    public void dealDeniedPermission(PermissionDenyBean permissionDenyBean) {
+        final Context context = permissionDenyBean.getContext();
+        new AlertDialog.Builder(context)
+                .setTitle("提示")
+                .setMessage("sd卡读写权限被禁止，需要手动打开")
+                .setPositiveButton("去设置", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        SettingUtil.go2Setting(context);
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .create().show();
+
+    }
+
+}
+
+
